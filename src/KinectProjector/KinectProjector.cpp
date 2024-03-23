@@ -53,13 +53,13 @@ drawKinectColorView(true)
     if (!xml.load(defaultsFile)){
         DumpDebugFiles = true;
 		DebugFileOutDir = "DebugFiles/";
-		ROIFileOutDir = "DebugFiles/";
+		//ROIFileOutDir = "DebugFiles/";
 	}
 	else{}
 	    auto defaultSets = xml.find("DEFAULTSETTINGS").getFirst();
 	    DebugFileOutDir = defaultSets.getChild("debugFolderPath").getValue<string>();
 	    DumpDebugFiles = defaultSets.getChild("dumpDebugFiles").getValue<bool>();
-	    ROIFileOutDir = defaultSets.getChild("roiImagePath").getValue<string>();
+	    //ROIFileOutDir = defaultSets.getChild("roiImagePath").getValue<string>();
 	////////////////////////////////////////////////////////
 }
 

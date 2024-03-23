@@ -602,7 +602,7 @@ bool SandSurfaceRenderer::loadSettings(){
         return false;
     auto defaultSets = xml.find("DEFAULTSETTINGS").getFirst();
     colorMapPath = defaultSets.getChild("colorMapPath").getValue<string>(); //19 Feb 2024 STH
-    
+    DEMFilePath = defaultSets.getChild("DEMFilePath").getValue<string>(); //19 Feb 2024 STH
     return true;
 }
 

@@ -3,5 +3,5 @@
 	<colorMapPath>colorMaps/</colorMapPath>
 	<debugFolderPath>DebugFiles/</debugFolderPath>
 	<dumpDebugFiles>1</dumpDebugFiles>
-	<roiImagePath>Bla/</roiImagePath>
+	<DEMFilePath>Bla/</DEMFilePath>
 </DEFAULTSETTINGS>

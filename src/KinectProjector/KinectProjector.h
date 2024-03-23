@@ -379,7 +379,7 @@ private:
 	void SaveFilteredDepthImageDebug();
 
     // ROI image export
-    string ROIFileOutDir;
+    //string ROIFileOutDir;
 };
 
 
