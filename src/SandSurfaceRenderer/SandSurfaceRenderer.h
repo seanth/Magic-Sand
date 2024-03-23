@@ -121,10 +121,12 @@ private:
     // Shaders
     ofShader elevationShader;
     ofShader heightMapShader;
+    ofShader greyHeightMapShader; //STH 2024-0318
     
     // FBos
     ofFbo   fboProjWindow;    
     ofFbo   contourLineFramebufferObject;
+    ofFbo   fboGreyscale; //STH 2024-0318
 
     // Base plane
     ofVec3f basePlaneNormal, basePlaneNormalBack;
@@ -134,14 +136,19 @@ private:
     // Colormap
     string colorMapPath;
     string colorMapFile;
+    string greyMapFile; //STH 2024-0319
     std::vector<string> colorMapFilesList;
     ColorMap    heightMap;
+    ColorMap    greyHeightMap; //STH 2024-0318
     std::vector<ColorMap::HeightMapKey> heightMapKeys;
+
     
-	float heightMapScale,heightMapOffset; // Scale and offset values to convert from elevation to height color map texture coordinates
+    float heightMapScale,heightMapOffset; // Scale and offset values to convert from elevation to height color map texture coordinates
+    float greyHeightMapScale, greyHeightMapOffset; //STH 2024-0318
     float contourLineFboScale, contourLineFboOffset; // Scale and offset values to convert depth from contourline shader values to real values
-	float FilteredDepthScale,FilteredDepthOffset; // Scale and offset values to convert depth from normalized shader values to real values
+    float FilteredDepthScale,FilteredDepthOffset; // Scale and offset values to convert depth from normalized shader values to real values
     float elevationMin, elevationMax;
+    float greyElevationMin, greyElevationMax; //STH 2024-0318
     
     // Contourlines
     float contourLineDistance, contourLineFactor;

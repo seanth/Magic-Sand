@@ -50,7 +50,8 @@ void SandSurfaceRenderer::setup(bool sdisplayGui){
     contourLineFramebufferObject.end();
 
     //Try to load settings file if possible
-    if (loadSettings()){
+    if (loadSettings())
+    {
         ofLogVerbose("SandSurfaceRenderer") << "SandSurfaceRenderer.setup(): sandSurfaceRendererSettings.xml loaded " ;
         settingsLoaded = true;
     } else {
@@ -69,18 +70,25 @@ void SandSurfaceRenderer::setup(bool sdisplayGui){
     
     bool heighMapFileLoaded = true;
     
-    if (settingsLoaded){
+    if (settingsLoaded)
+        ofLogVerbose("SandSurfaceRenderer") << "SandSurfaceRenderer.setup(): loading colorMapFile " ;
         heighMapFileLoaded = heightMap.loadFile(colorMapPath+colorMapFile);
-    }
+        //Load in the greyscale height map. STH 2024-0319
+        ofLogVerbose("SandSurfaceRenderer") << "SandSurfaceRenderer.setup(): loading greyMapFile " ;
+        greyHeightMap.loadFile(colorMapPath+greyMapFile);
     
-    if (!(settingsLoaded && heighMapFileLoaded) && dir.size() > 0){
+    if (!(settingsLoaded && heighMapFileLoaded) && dir.size() > 0)
+    {
+        ofLogVerbose("SandSurfaceRenderer") << "SandSurfaceRenderer.setup(): loading first color map file in directory " ;
         heighMapFileLoaded = heightMap.loadFile(colorMapPath+colorMapFilesList[0]);
         colorMapFile = colorMapFilesList[0];
         saveSettings();
         settingsLoaded = true;
     }
     
-    if (!heighMapFileLoaded){
+    if (!heighMapFileLoaded)
+    {
+        ofLogVerbose("SandSurfaceRenderer") << "SandSurfaceRenderer.setup(): creating heightcolormap.xml file " ;
         heightMap.createFile(colorMapPath+"HeightColorMap.xml");
         colorMapFile = "HeightColorMap.xml";
         saveSettings();
@@ -88,12 +96,26 @@ void SandSurfaceRenderer::setup(bool sdisplayGui){
     }
     
     //Set elevation Min and Max
+    ofLogVerbose("SandSurfaceRenderer") << "setup(): getting max/min elevation from color heightMap " ;
     elevationMin = -heightMap.getScalarRangeMin();
     elevationMax = -heightMap.getScalarRangeMax();
+    ofLogVerbose("SandSurfaceRenderer") << "setup(): min: "<<elevationMin<<" max: "<<elevationMax;
+    //Get max/min elevation data for greyscale. STH 2024-0318
+    ofLogVerbose("SandSurfaceRenderer") << "setup(): getting max/min elevation from greyscale heightMap " ;
+    greyElevationMin = -greyHeightMap.getScalarRangeMin();
+    greyElevationMax = -greyHeightMap.getScalarRangeMax();
+    ofLogVerbose("SandSurfaceRenderer") << "setup(): min: "<<greyElevationMin<<" max: "<<greyElevationMax;
     
     // Calculate the  height map elevation scaling and offset coefficients
+    ofLogVerbose("SandSurfaceRenderer") << "setup(): getting colour height scale and offset " ;
 	heightMapScale = (heightMap.getNumEntries()-1)/((elevationMax-elevationMin));
 	heightMapOffset = 0.5/heightMap.getNumEntries()-heightMapScale*elevationMin;
+    ofLogVerbose("SandSurfaceRenderer") << "setup(): scale: "<<heightMapScale<<" offset: "<<heightMapOffset;
+    //Get map scale and offsets for greyscale. STH 2024-0318
+    ofLogVerbose("SandSurfaceRenderer") << "setup(): getting greyscale height scale and offset " ;
+    greyHeightMapScale = (greyHeightMap.getNumEntries()-1)/((greyElevationMax-greyElevationMin));
+    greyHeightMapOffset = 0.5/greyHeightMap.getNumEntries()-greyHeightMapScale*greyElevationMin;
+    ofLogVerbose("SandSurfaceRenderer") << "setup(): scale: "<<heightMapScale<<" offset: "<<heightMapOffset;
     
     // Calculate the contourline fbo scaling and offset coefficients
 	contourLineFboScale = elevationMin-elevationMax;
@@ -107,11 +129,11 @@ void SandSurfaceRenderer::setup(bool sdisplayGui){
     
 	// Load shaders
     bool loaded = true;
-
+#ifdef TARGET_OPENGLES
     ofLogVerbose("SandSurfaceRenderer") << "setup(): Loading shadersES2";
 	loaded = loaded && elevationShader.load("shaders/shadersES2/elevationShader");
 	loaded = loaded && heightMapShader.load("shaders/shadersES2/heightMapShader");
-
+#else
 	if(ofIsGLProgrammableRenderer()){
         ofLogVerbose("SandSurfaceRenderer") << "setup(): Loading shadersGL3/elevationShader";
 		loaded = loaded && elevationShader.load("shaders/shadersGL3/elevationShader");
@@ -123,21 +145,30 @@ void SandSurfaceRenderer::setup(bool sdisplayGui){
         ofLogVerbose("SandSurfaceRenderer") << "setup(): Loading shadersGL2/heightMapShader";
 		loaded = loaded && heightMapShader.load("shaders/shadersGL2/heightMapShader");
 	}
-
-    if (!loaded){
+#endif
+    if (!loaded)
+    {
         ofLogError("GreatSand") << "setup(): shader not loaded" ;
     }
     
+    ofLogVerbose("SandSurfaceRenderer") << "setup(): setting up fboProjWindow";
     //Prepare fbo
     fboProjWindow.allocate(projResX, projResY, GL_RGBA);
     fboProjWindow.begin();
     ofClear(0,0,0,255);
     fboProjWindow.end();
+
+    ofLogVerbose("SandSurfaceRenderer") << "setup(): setting up fboGreyscale";
+    //Prepare greyscale fbo
+    //STH 2024-0318
+    fboGreyscale.allocate(projResX, projResY, GL_R8);
+    fboGreyscale.begin();
+    ofClear(0);
+    fboGreyscale.end();
     
     displayGui = sdisplayGui;
-    if (displayGui){
+    if (displayGui)
         setupGui();
-    }
     
     // Setup range, base plane and conversion matrices
     updateConversionMatrices();
@@ -145,7 +176,8 @@ void SandSurfaceRenderer::setup(bool sdisplayGui){
 }
 
 void SandSurfaceRenderer::exit(ofEventArgs& e){
-    if (saveSettings()){
+    if (saveSettings())
+    {
         ofLogVerbose("SandSurfaceRenderer") << "exit(): Settings saved " ;
     } else {
         ofLogVerbose("SandSurfaceRenderer") << "exit(): Settings could not be saved " ;
@@ -207,21 +239,16 @@ void SandSurfaceRenderer::setupMesh(){
 void SandSurfaceRenderer::update(){
     // Update Renderer state if needed
     //if (kinectProjector->isROIUpdated() || kinectProjector->getKinectROI() != kinectROI)
-	if (kinectProjector->getKinectROI() != kinectROI){
+	if (kinectProjector->getKinectROI() != kinectROI)
 		setupMesh();
-    }
-    if (kinectProjector->isBasePlaneUpdated()){
+    if (kinectProjector->isBasePlaneUpdated())
         updateRangesAndBasePlane();
-    }
-    if (kinectProjector->isCalibrationUpdated()){
+    if (kinectProjector->isCalibrationUpdated())
         updateConversionMatrices();
-    }
     
     // Draw sandbox
-    if (drawContourLines){
+    if (drawContourLines)
         prepareContourLinesFbo();
-    }
-
     drawSandbox();
     
     // GUI
@@ -258,6 +285,7 @@ void SandSurfaceRenderer::drawSandbox() {
     fboProjWindow.begin();
     ofBackground(0);
     kinectProjector->bind();
+    //ofLogVerbose("SandSurfaceRenderer") << "drawSandbox(): Setting up fboProjWindow heightMapShader ";
     heightMapShader.begin();
     heightMapShader.setUniformMatrix4f("kinectProjMatrix",transposedKinectProjMatrix);
     heightMapShader.setUniformMatrix4f("kinectWorldMatrix",transposedKinectWorldMatrix);
@@ -272,6 +300,25 @@ void SandSurfaceRenderer::drawSandbox() {
     heightMapShader.end();
     kinectProjector->unbind();
     fboProjWindow.end();
+
+    ///////////////////
+    //render the elevation data to fboElevationMap using the 
+    //greyHeightMap color map and the greyHeightMapScale and 
+    //greyHeightMapOffset coefficients. STH 2024-0319
+    fboGreyscale.begin();
+    ofBackground(0);
+    kinectProjector->bind();
+    heightMapShader.begin();
+    heightMapShader.setUniformMatrix4f("kinectProjMatrix",transposedKinectProjMatrix);
+    heightMapShader.setUniformMatrix4f("kinectWorldMatrix",transposedKinectWorldMatrix);
+    heightMapShader.setUniform2f("heightColorMapTransformation",ofVec2f(greyHeightMapScale,greyHeightMapOffset));
+    heightMapShader.setUniform2f("depthTransformation",ofVec2f(FilteredDepthScale,FilteredDepthOffset));
+    heightMapShader.setUniform4f("basePlaneEq", basePlaneEq);
+    heightMapShader.setUniformTexture("heightColorMapSampler",greyHeightMap.getTexture(), 2);
+    mesh.draw();//should this be commented out?
+    heightMapShader.end();
+    kinectProjector->unbind();
+    fboGreyscale.end();
 }
 
 void SandSurfaceRenderer::prepareContourLinesFbo()
@@ -336,9 +383,8 @@ void SandSurfaceRenderer::setupGui(){
 	gui3->setAutoDraw(false);
 	
 	int pos = find(colorMapFilesList.begin(), colorMapFilesList.end(), colorMapFile) - colorMapFilesList.begin();
-    if (pos < colorMapFilesList.size()){
+    if (pos < colorMapFilesList.size())
         gui2->getDropdown("Load Color Map")->select(pos);
-    }
     
     // add a scroll view to list colors //
     colorList = new ofxDatGuiScrollView("Colors", 7);
@@ -400,10 +446,8 @@ void SandSurfaceRenderer::onButtonEvent(ofxDatGuiButtonEvent e){
             heightMap.removeKey(j);
             colorList->remove(selectedColor);
             int i = selectedColor;
-            if (i == heightMap.size()){
+            if (i == heightMap.size())
                 i -= 1;
-            }
-
             selectedColor += 1; // To get i != selectedColor => update
             onScrollViewEvent(ofxDatGuiScrollViewEvent(colorList, colorList->get(i), i));
         }
@@ -500,47 +544,14 @@ void SandSurfaceRenderer::onSaveModalEvent(ofxModalEvent e){
     }   else if (e.type == ofxModalEvent::CONFIRM){
         string filen = saveModal->getTextInput();
         std::size_t found = filen.find(".xml");
-        if (found == std::string::npos){
+        if (found == std::string::npos)
             filen += ".xml";
-        }
         heightMap.saveFile(colorMapPath+filen);
         colorMapFilesList.push_back(filen);
         gui2->getDropdown("Load Color Map")->setOptions(colorMapFilesList);
         ofLogVerbose("SandSurfaceRenderer") << "save confirm button pressed, filename: " << filen;
     }
 }
-
-
-// void SandSurfaceRenderer::SaveROIImage()
-// {
-//     cout << "********************" << endl;
-
-//     /////////////////////////
-//     //test in writing out fboProjWindow
-//     ofPixels pixels;
-
-//     // fboProjWindow.readToPixels(pixels);
-
-//     // ofImage screenshot;
-//     // screenshot.setFromPixels(pixels);
-
-//     // cout << "Saving terrain to" << endl;
-//     // // Save the image to disk
-//     // screenshot.save("screenshot.tiff");
-//     /////////////////
-//     //help from Claude:
-//     // Create a grayscale image to store the elevation map
-//     pixels.allocate(OF_IMAGE_GREYSCALE);
-
-//     // Read the frame buffer object as a grayscale image
-//     fboProjWindow.readToPixels(pixels);
-
-//     cout << "Saving grayscale elevation map to" << endl;
-
-//     // Save the grayscale image to disk
-//     grayImage.save("elevationMap.tiff");
-//     /////////////////////////
-// }
 
 void SandSurfaceRenderer::SaveROIImage()
 {
@@ -554,6 +565,19 @@ void SandSurfaceRenderer::SaveROIImage()
     elevationMapImage.setImageType(OF_IMAGE_GRAYSCALE);
     cout << "Saving grayscale elevation map" << endl;
     elevationMapImage.save("screenshot.png");
+
+    /////////////
+    //Output the greyscale elevation data from the fboGreyscale frame buffer
+    //STH 2024-0319
+    cout << "********************" << endl;
+    //ofPixels pixels;
+    fboGreyscale.readToPixels(pixels);
+
+    ofImage greyElevationMapImage;
+    greyElevationMapImage.setFromPixels(pixels);
+    //elevationMapImage.setImageType(OF_IMAGE_GRAYSCALE);
+    cout << "Saving second grayscale elevation map" << endl;
+    greyElevationMapImage.save("greyscreenshot.png");
 }
 
 
@@ -563,21 +587,19 @@ bool SandSurfaceRenderer::loadSettings(){
     string settingsFile = "settings/sandSurfaceRendererSettings.xml";
     
     ofXml xml;
-    if (!xml.load(settingsFile)){
+    if (!xml.load(settingsFile))
         return false;
-    }
     auto srs = xml.find("SURFACERENDERERSETTINGS").getFirst();
     colorMapFile = srs.getChild("colorMapFile").getValue<string>();
     greyMapFile = srs.getChild("greyMapFile").getValue<string>();
     drawContourLines = srs.getChild("drawContourLines").getValue<bool>();
     contourLineDistance = srs.getChild("contourLineDistance").getValue<float>();
-    ofLogVerbose()<<colorMapFile<<":"<<drawContourLines<<":"<<contourLineDistance;
+    ofLogVerbose("SandSurfaceRenderer")<<"loadSettings():"<<colorMapFile<<":"<<greyMapFile<<":"<<drawContourLines<<":"<<contourLineDistance;
 
     //adding editable settings vs hardcoded. 19 Feb 2024 STH
     string defaultsFile = "settings/defaultSettings.xml";
-    if (!xml.load(defaultsFile)){
+    if (!xml.load(defaultsFile))
         return false;
-    }
     auto defaultSets = xml.find("DEFAULTSETTINGS").getFirst();
     colorMapPath = defaultSets.getChild("colorMapPath").getValue<string>(); //19 Feb 2024 STH
     
