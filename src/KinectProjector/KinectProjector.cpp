@@ -684,6 +684,7 @@ void KinectProjector::updateROIFromDepthImage(){
 
 void KinectProjector::updateROIFromFile()
 {
+	cout << "*****Trying to update ROI from File" << endl;
 	string settingsFile = "settings/kinectProjectorSettings.xml";
 
 	ofXml xml;
@@ -720,7 +721,8 @@ void KinectProjector::setNewKinectROI()
     // Update states variables
     ROIcalibrated = true;
 //    ROIUpdated = true;
-    saveCalibrationAndSettings();
+
+    //saveCalibrationAndSettings(); //commented out so can load settings from file without overwrite. STH 2024-0318
     updateKinectGrabberROI(kinectROI);
 	updateStatusGUI();
 }
@@ -1443,6 +1445,8 @@ void KinectProjector::setupGui(){
 	
 	auto * calibrationFolder = gui->addFolder("Calibration", ofColor::darkCyan);
 	calibrationFolder->addButton("Manually define sand region");
+	calibrationFolder->addButton("Load sand region from file");
+	calibrationFolder->addButton("Load kinect & projector settings");
 	calibrationFolder->addButton("Automatically calibrate kinect & projector");
 	calibrationFolder->addButton("Auto Adjust ROI");
 	calibrationFolder->addToggle("Show ROI on sand", doShowROIonProjector);
@@ -1481,25 +1485,30 @@ void KinectProjector::setupGui(){
 
 void KinectProjector::startApplication()
 {
+	cout << "*****KinectProjector::startApplication()" << endl;
 	if (applicationState == APPLICATION_STATE_RUNNING)
 	{
+		cout << "*****KinectProjector::startApplication() application running" << endl;
 		applicationState = APPLICATION_STATE_SETUP;
 		updateStatusGUI();
 		return;
 	}
 	if (applicationState == APPLICATION_STATE_CALIBRATING)
 	{
+		cout << "*****KinectProjector::startApplication() application calibrating" << endl;
 		ofLogVerbose("KinectProjector") << "KinectProjector.startApplication(): we are calibrating ";
 		return;
 	}
 	if (!kinectOpened)
 	{
+		cout << "*****KinectProjector::startApplication() Kinect is not running" << endl;
 		ofLogVerbose("KinectProjector") << "KinectProjector.startApplication(): Kinect is not running ";
 		return;
 	}
 
 	if (!projKinectCalibrated)
 	{
+		cout << "*****KinectProjector::startApplication() Kinect is not calibrated--trying to load calibration" << endl;
 		ofLogVerbose("KinectProjector") << "KinectProjector.startApplication(): Kinect projector not calibrated - trying to load calibration.xml";
 		//Try to load calibration file if possible
 		if (kpt->loadCalibration("settings/calibration.xml"))
@@ -1513,15 +1522,18 @@ void KinectProjector::startApplication()
 		}
 		else
 		{
+			cout << "*****KinectProjector::startApplication() Kinect is not calibrated--calibration could not be loaded" << endl;
 			ofLogVerbose("KinectProjector") << "KinectProjector.startApplication(): Calibration could not be loaded";
 			return;
 		}
 	}
-
+	cout << "*****Line 1522 just before ROI calibrated check" << endl;
 	if (!ROIcalibrated)
 	{
+		cout << "*****KinectProjector::startApplication() Kinect ROI is not calibrated" << endl;
 		ofLogVerbose("KinectProjector") << "KinectProjector.startApplication(): Kinect ROI not calibrated - trying to load kinectProjectorSettings.xml";
 		//Try to load settings file if possible
+		cout << "*****Line 1527 just before loadSettings" << endl;
 		if (loadSettings())
 		{
 			ofLogVerbose("KinectProjector") << "KinectProjector.setup(): Settings loaded ";
@@ -1548,7 +1560,7 @@ void KinectProjector::startApplication()
 	}
 
 	ResetSeaLevel();
-
+	cout << "*****KinectProjector::startApplication() all is well" << endl;
 	// If all is well we are running
 	applicationState = APPLICATION_STATE_RUNNING;
 	fullCalibState = FULL_CALIBRATION_STATE_DONE;
@@ -1675,20 +1687,37 @@ void KinectProjector::onButtonEvent(ofxDatGuiButtonEvent e){
 	{
 		startApplication();
 	}
-	else if (e.target->is("Update ROI from calibration")) {
-		updateROIFromCalibration();
-	} else if (e.target->is("Automatically detect sand region")) {
-        startAutomaticROIDetection();
-    } else if (e.target->is("Manually define sand region")){
+	// else if (e.target->is("Update ROI from calibration")) {
+	// 	//not shown as an option? STH 2024-0318
+	// 	updateROIFromCalibration();
+	// } 
+	// else if (e.target->is("Automatically detect sand region")) {
+	// 	//not shown as an option? STH 2024-0318
+	// 	startAutomaticROIDetection();
+    // } 
+    //Why not just load ROI previously saved? STH 2024-0318
+    else if (e.target->is("Load sand region from file")){
+		updateROIFromFile();
+	}
+    else if (e.target->is("Manually define sand region")){
 		StartManualROIDefinition();
 	}
+    else if (e.target->is("Load kinect & projector settings")){
+		loadSettings();
+		basePlaneUpdated = true;
+		basePlaneComputed = true;
+		projKinectCalibrated = true;
+		projKinectCalibrationUpdated = true;
+		updateStatusGUI();
+	}	
 	else if (e.target->is("Automatically calibrate kinect & projector")) {
         startAutomaticKinectProjectorCalibration();
-    } else if (e.target->is("Manually calibrate kinect & projector")) {
-        // Not implemented yet
-    } else if (e.target->is("Reset sea level")){
+    } 
+    // else if (e.target->is("Manually calibrate kinect & projector")) {
+    //     // Not implemented yet
+    // } 
+    else if (e.target->is("Reset sea level")){
 		ResetSeaLevel();
-
     }
 	else if (e.target->is("Auto Adjust ROI"))
 	{
@@ -1880,6 +1909,7 @@ void KinectProjector::saveCalibrationAndSettings()
 }
 
 bool KinectProjector::loadSettings(){
+	cout << "*****Trying to load kinectProjectorSettings line1893" << endl;
     string settingsFile = "settings/kinectProjectorSettings.xml";
     
     ofXml xml;
