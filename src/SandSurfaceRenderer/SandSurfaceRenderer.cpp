@@ -564,7 +564,7 @@ void SandSurfaceRenderer::SaveROIImage()
     elevationMapImage.setFromPixels(pixels);
     elevationMapImage.setImageType(OF_IMAGE_GRAYSCALE);
     cout << "Saving grayscale elevation map" << endl;
-    elevationMapImage.save("screenshot.png");
+    elevationMapImage.save(DEMFilePath+"screenshot.png");
 
     /////////////
     //Output the greyscale elevation data from the fboGreyscale frame buffer
@@ -577,7 +577,7 @@ void SandSurfaceRenderer::SaveROIImage()
     greyElevationMapImage.setFromPixels(pixels);
     //elevationMapImage.setImageType(OF_IMAGE_GRAYSCALE);
     cout << "Saving second grayscale elevation map" << endl;
-    greyElevationMapImage.save("greyscreenshot.png");
+    greyElevationMapImage.save(DEMFilePath+"greyscreenshot.png");
 }
 
 
