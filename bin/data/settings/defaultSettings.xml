@@ -3,5 +3,6 @@
 	<colorMapPath>colorMaps/</colorMapPath>
 	<debugFolderPath>DebugFiles/</debugFolderPath>
 	<dumpDebugFiles>1</dumpDebugFiles>
-	<DEMFilePath>Bla/</DEMFilePath>
+	<DEMFilePath>../../../Vida/Terrain_files/sandBox_files/</DEMFilePath>
+	<defaultDEMName>sandboxDEM.tiff</defaultDEMName>
 </DEFAULTSETTINGS>
