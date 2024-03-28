@@ -558,13 +558,16 @@ void SandSurfaceRenderer::SaveROIImage()
     cout << "********************" << endl;
     ofPixels pixels;
     //pixels.allocate(fboProjWindow.getWidth(), fboProjWindow.getHeight(), OF_IMAGE_GRAYSCALE);
-    fboProjWindow.readToPixels(pixels);
+    // fboProjWindow.readToPixels(pixels);
 
-    ofImage elevationMapImage;
-    elevationMapImage.setFromPixels(pixels);
-    elevationMapImage.setImageType(OF_IMAGE_GRAYSCALE);
-    cout << "Saving grayscale elevation map" << endl;
-    elevationMapImage.save(DEMFilePath+"screenshot.png");
+    // ofImage elevationMapImage;
+    // elevationMapImage.setFromPixels(pixels);
+    // elevationMapImage.setImageType(OF_IMAGE_GRAYSCALE);
+    // cout << "Saving grayscale elevation map" << endl;
+    // cout << DEMFilePath <<endl;
+    // cout << DEMFilePath+"screenshot.png" <<endl;
+    // cout << ofFilePath::getAbsolutePath("../"+DEMFilePath) <<endl;
+    // elevationMapImage.save("../../"+DEMFilePath+"screenshot.png");
 
     /////////////
     //Output the greyscale elevation data from the fboGreyscale frame buffer
@@ -577,7 +580,18 @@ void SandSurfaceRenderer::SaveROIImage()
     greyElevationMapImage.setFromPixels(pixels);
     //elevationMapImage.setImageType(OF_IMAGE_GRAYSCALE);
     cout << "Saving second grayscale elevation map" << endl;
-    greyElevationMapImage.save(DEMFilePath+"greyscreenshot.png");
+    cout << ofFilePath::getAbsolutePath(DEMFilePath+defaultDEMName) <<endl;
+    //cout << kinectROI <<endl;
+    //cout << greyElevationMapImage.getWidth() <<endl;
+    //cout << greyElevationMapImage.getHeight() <<endl;
+    //greyElevationMapImage.save(DEMFilePath+defaultDEMName);
+    //cout << kinectProjector->kinectCoordToProjCoord(kinectROI.getMinX(), kinectROI.getMinY()) <<endl;
+    //Crop the image to match the ROI
+    //STH 2024-0327
+    ofVec2f UL = kinectProjector->kinectCoordToProjCoord(kinectROI.getMinX(), kinectROI.getMinY());
+    ofVec2f LR = kinectProjector->kinectCoordToProjCoord(kinectROI.getMaxX()-1, kinectROI.getMaxY()-1);
+    greyElevationMapImage.crop(UL.x, UL.y, LR.x-UL.x, LR.y-UL.y);
+    greyElevationMapImage.save(DEMFilePath+defaultDEMName);
 }
 
 
@@ -603,6 +617,7 @@ bool SandSurfaceRenderer::loadSettings(){
     auto defaultSets = xml.find("DEFAULTSETTINGS").getFirst();
     colorMapPath = defaultSets.getChild("colorMapPath").getValue<string>(); //19 Feb 2024 STH
     DEMFilePath = defaultSets.getChild("DEMFilePath").getValue<string>(); //19 Feb 2024 STH
+    defaultDEMName = defaultSets.getChild("defaultDEMName").getValue<string>(); //27 March 2024 STH
     return true;
 }
 
