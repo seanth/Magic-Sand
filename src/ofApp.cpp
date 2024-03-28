@@ -57,6 +57,9 @@ void ofApp::setup() {
 	boidGameController.setProjectorRes(projRes);
 	boidGameController.setKinectRes(kinectRes);
 	boidGameController.setKinectROI(kinectROI);
+	//Adding camera shutter sound for image capture
+	//STH 2024-0327
+	cameraSound.load("camera-shutter.mp3");
 
 }
 
@@ -124,6 +127,7 @@ void ofApp::keyPressed(int key)
 		//no need to dump the text files
 		//will use a unique file path
 		sandSurfaceRenderer->SaveROIImage();
+		cameraSound.play();
 	}
 	////////////////////
 	else if (key == ' ')

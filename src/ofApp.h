@@ -51,6 +51,9 @@ public:
 	void gotMessage(ofMessage msg);
 
 	std::shared_ptr<ofAppBaseWindow> projWindow;
+	//Adding camera shutter sound for image capture
+	//STH 2024-0327
+	ofSoundPlayer   cameraSound;
 
 private:
 	std::shared_ptr<KinectProjector> kinectProjector;
