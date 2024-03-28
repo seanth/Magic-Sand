@@ -138,6 +138,7 @@ private:
     string colorMapFile;
     string greyMapFile; //STH 2024-0319
     string DEMFilePath; //STH 2024-0323
+    string defaultDEMName; //STH 2024-0327
     std::vector<string> colorMapFilesList;
     ColorMap    heightMap;
     ColorMap    greyHeightMap; //STH 2024-0318
