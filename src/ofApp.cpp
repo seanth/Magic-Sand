@@ -122,7 +122,9 @@ void ofApp::keyPressed(int key)
 	////////////////////
 	//generate an image that external apps can use as a DEM
 	//21 Feb 2024. STH
-	else if (key == 's')
+	//extended so space bar and up arrow also trigger it
+	//STH 2024-0401
+	else if (key == 's' || key == ' ' || key == OF_KEY_UP)
 	{
 		//no need to dump the text files
 		//will use a unique file path
@@ -130,92 +132,93 @@ void ofApp::keyPressed(int key)
 		cameraSound.play();
 	}
 	////////////////////
-	else if (key == ' ')
-	{
-		if (kinectProjector->GetApplicationState() == KinectProjector::APPLICATION_STATE_RUNNING && 
-			boidGameController.isIdle()) // do not start map game if boidgame is not idle
-		{
-			if (mapGameController.isIdle())
-			{
-				mapGameController.setDebug(kinectProjector->getDumpDebugFiles());
-				mapGameController.StartGame();
-			}
-			else
-			{
-				mapGameController.ButtonPressed();
-			}
-		}
-		else if (kinectProjector->GetApplicationState() == KinectProjector::APPLICATION_STATE_SETUP)
-		{
-			// Try to start the application
-			kinectProjector->startApplication();
-		}
-	}
-	else if (key == 'f' || key == 'r')
-	{
-		if (kinectProjector->GetApplicationState() == KinectProjector::APPLICATION_STATE_RUNNING)
-		{
-			if (mapGameController.isIdle())
-			{
-				boidGameController.setDebug(kinectProjector->getDumpDebugFiles());
-				boidGameController.StartGame(2);
-			}
-			else 
-			{
-				mapGameController.EndButtonPressed();
-			}
-		}
-	}
-	else if (key == '1') // Absolute beginner
-	{
-		if (kinectProjector->GetApplicationState() == KinectProjector::APPLICATION_STATE_RUNNING && mapGameController.isIdle())
-		{
-			boidGameController.setDebug(kinectProjector->getDumpDebugFiles());
-			boidGameController.StartGame(0);
-		}
-	}
-	else if (key == '2') 
-	{
-		if (kinectProjector->GetApplicationState() == KinectProjector::APPLICATION_STATE_RUNNING && mapGameController.isIdle())
-		{
-			boidGameController.setDebug(kinectProjector->getDumpDebugFiles());
-			boidGameController.StartGame(1);
-		}
-	}
-	else if (key == '3')
-	{
-		if (kinectProjector->GetApplicationState() == KinectProjector::APPLICATION_STATE_RUNNING && mapGameController.isIdle())
-		{
-			boidGameController.setDebug(kinectProjector->getDumpDebugFiles());
-			boidGameController.StartGame(2);
-		}
-	}
-	else if (key == '4')
-	{
-		if (kinectProjector->GetApplicationState() == KinectProjector::APPLICATION_STATE_RUNNING && mapGameController.isIdle())
-		{
-			boidGameController.setDebug(kinectProjector->getDumpDebugFiles());
-			boidGameController.StartGame(3);
-		}
-	}
-	else if (key == 'm')
-	{
-		if (kinectProjector->GetApplicationState() == KinectProjector::APPLICATION_STATE_RUNNING && mapGameController.isIdle())
-		{
-			boidGameController.setDebug(kinectProjector->getDumpDebugFiles());
-			boidGameController.StartSeekMotherGame();
-		}
-	}
-	else if (key == 't')
-	{
-		mapGameController.setDebug(kinectProjector->getDumpDebugFiles());
-		mapGameController.RealTimeTestMe();
-	}
-	else if (key == 'w')
-	{
-		mapGameController.setDebug(kinectProjector->getDumpDebugFiles());
-		mapGameController.DebugTestMe();
-	}
+	///Disabled games STH 2024-0401
+	// else if (key == ' ')
+	// {
+	// 	if (kinectProjector->GetApplicationState() == KinectProjector::APPLICATION_STATE_RUNNING && 
+	// 		boidGameController.isIdle()) // do not start map game if boidgame is not idle
+	// 	{
+	// 		if (mapGameController.isIdle())
+	// 		{
+	// 			mapGameController.setDebug(kinectProjector->getDumpDebugFiles());
+	// 			mapGameController.StartGame();
+	// 		}
+	// 		else
+	// 		{
+	// 			mapGameController.ButtonPressed();
+	// 		}
+	// 	}
+	// 	else if (kinectProjector->GetApplicationState() == KinectProjector::APPLICATION_STATE_SETUP)
+	// 	{
+	// 		// Try to start the application
+	// 		kinectProjector->startApplication();
+	// 	}
+	// }
+	// else if (key == 'f' || key == 'r')
+	// {
+	// 	if (kinectProjector->GetApplicationState() == KinectProjector::APPLICATION_STATE_RUNNING)
+	// 	{
+	// 		if (mapGameController.isIdle())
+	// 		{
+	// 			boidGameController.setDebug(kinectProjector->getDumpDebugFiles());
+	// 			boidGameController.StartGame(2);
+	// 		}
+	// 		else 
+	// 		{
+	// 			mapGameController.EndButtonPressed();
+	// 		}
+	// 	}
+	// }
+	// else if (key == '1') // Absolute beginner
+	// {
+	// 	if (kinectProjector->GetApplicationState() == KinectProjector::APPLICATION_STATE_RUNNING && mapGameController.isIdle())
+	// 	{
+	// 		boidGameController.setDebug(kinectProjector->getDumpDebugFiles());
+	// 		boidGameController.StartGame(0);
+	// 	}
+	// }
+	// else if (key == '2') 
+	// {
+	// 	if (kinectProjector->GetApplicationState() == KinectProjector::APPLICATION_STATE_RUNNING && mapGameController.isIdle())
+	// 	{
+	// 		boidGameController.setDebug(kinectProjector->getDumpDebugFiles());
+	// 		boidGameController.StartGame(1);
+	// 	}
+	// }
+	// else if (key == '3')
+	// {
+	// 	if (kinectProjector->GetApplicationState() == KinectProjector::APPLICATION_STATE_RUNNING && mapGameController.isIdle())
+	// 	{
+	// 		boidGameController.setDebug(kinectProjector->getDumpDebugFiles());
+	// 		boidGameController.StartGame(2);
+	// 	}
+	// }
+	// else if (key == '4')
+	// {
+	// 	if (kinectProjector->GetApplicationState() == KinectProjector::APPLICATION_STATE_RUNNING && mapGameController.isIdle())
+	// 	{
+	// 		boidGameController.setDebug(kinectProjector->getDumpDebugFiles());
+	// 		boidGameController.StartGame(3);
+	// 	}
+	// }
+	// else if (key == 'm')
+	// {
+	// 	if (kinectProjector->GetApplicationState() == KinectProjector::APPLICATION_STATE_RUNNING && mapGameController.isIdle())
+	// 	{
+	// 		boidGameController.setDebug(kinectProjector->getDumpDebugFiles());
+	// 		boidGameController.StartSeekMotherGame();
+	// 	}
+	// }
+	// else if (key == 't')
+	// {
+	// 	mapGameController.setDebug(kinectProjector->getDumpDebugFiles());
+	// 	mapGameController.RealTimeTestMe();
+	// }
+	// else if (key == 'w')
+	// {
+	// 	mapGameController.setDebug(kinectProjector->getDumpDebugFiles());
+	// 	mapGameController.DebugTestMe();
+	// }
 }
 
 void ofApp::keyReleased(int key) {
